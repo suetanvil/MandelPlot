@@ -10,6 +10,13 @@ It has been tested on Firefox 12.0 and Chrome 18.0.  Other modern web
 browsers may also work.
 
 
+Trying It
+=========
+
+Since this is a browser app, you can try it out just by going to
+<http://www.blit.ca/mandelplot/mandel.html>.
+
+
 Installation
 ============
 
