@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>MandelPlot</title>
+
+  <style type="text/css">
+    body { 
+	    color: black; 
+	    background: white;
+	    margin-left: 5%;
+	    margin-right: 5%;
+	    width: 80ex;
+	    font-size: 12pt;
+    }
+  </style>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script src="seq.js"></script>
+  <script src="plotstate.js"></script>
+  <script src="zoomer.js"></script>
+  <script src="quickform.js"></script>
+  <script src="mandel.js"></script>
+</head>
+<body>
+
+<h1>MandelPlot</h1>
+
+<p>
+A <a href="http://en.wikipedia.org/wiki/Mandelbrot_set">Mandelbrot
+set</a> plotter written
+in <a href="http://coffeescript.org/">CoffeeScript</a>.  Source code
+is <a href="http://www.github.com/suetanvil/mandelplot/">here</a>.
+</p>
+
+<noscript>
+This program needs JavaScript to be enabled.  It's a <b>program</b>,
+you see.
+</noscript>
+
+<div style="position: relative; width: 800px; height: 600px">
+  <canvas id="mandelplot_canvas" width="800" height="600"
+          style="border:1px solid black; background: black;
+                 position: absolute; left: 0; top: 0; z-index: 0;">
+    This application needs the canvas element.
+  </canvas>
+  
+  <canvas id="mandelplot_selection" width="800" height="600"
+          style="border:1px solid black; position: absolute; 
+                 left: 0; top: 0; z-index: 1">
+    This application needs the canvas element.
+  </canvas>
+</div>
+
+<div style="font-size: 10pt; margin-left: 1em">
+  <p>Region: <span id="mandelplot_region">XXX</span></p>
+  <div id="mandelplot_ui"></div>
+</div>
+
+<p>
+You can zoom in on a rectangular region by selecting it with the mouse
+and then pressing "Render".
+<p>
+"Iterations per pixel" controls the level of detail.  Higher values
+provide more precise results but take longer.  They may also hide some
+level of detail further from the edge of the actual set (i.e. the
+black regions) due to the way colours are chosen.
+<p>
+"Pixels per event" determines how many pixels are computed at one time
+before control is returned to the browser.  Higher values make the
+browser less responsive (and may bring up the "stuck script" warning)
+but will (in theory) speed up actual rendering.  Actual experiments
+show it to not be worth the bother.
+</p>
+
+<hr>
+
+<p style="font-size: 8pt">
+  Copyright &#160;&#169;&#160; 2012 Chris Reuter.  This program is
+  available under the terms of
+  the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU GPL version
+    2</a> and is distributed with NO WARRANTY.
+</p>
+
+</body>
+</html>
