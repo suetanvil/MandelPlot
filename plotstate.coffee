@@ -113,7 +113,8 @@ class PlotState
 
   # Return the URL of the current rendering parameters.  baseUrl must
   # be the URL of this page.
-  link: (baseUrl) -> "#{baseUrl}##{@topLeft[x]},#{@topLeft[y]},#{@pixelSize},#{@iter}"
+  link: (baseUrl) ->
+    "#{baseUrl}##{@topLeft[0]},#{@topLeft[1]},#{@pixelSize},#{@iter}"
 
   # Zoom in or out (i.e. set the parameters to a new position zoomed
   # from the current position).  Zooms out if scale is > 1.0 and in if

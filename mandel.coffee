@@ -22,6 +22,7 @@ Plotter = null  # This object handles the actual computation and plotting
 Zoomer = null   # This object lets the user select a new region to plot
 Ctrl = null     # This object constructs a bunch of controls
 
+
 # The entry point.  This gets called when the document is ready.
 $(document).ready ->
   initGlobals()
@@ -43,6 +44,7 @@ setupControls =  ->
   writeToUI()
   updateCaption()
 
+
 # Actually create the form UI
 makeUI = ->
   Ctrl.numEntry('iter', "Iterations per pixel")
@@ -51,6 +53,7 @@ makeUI = ->
   Ctrl.button('zbtn', "Zoom out by 50% and re-render", "Zoom Out",
       zoomOutAndRender)
   Ctrl.button('rsbtn', "Reset zoom and re-render", "Reset", resetPosAndRender)
+
 
 # If the URL contains coordinates after the hash ('#'), parse them and
 # set them as the starting point.
@@ -81,12 +84,19 @@ fetchUrlParams = ->
 
 # Update the caption underneath the canvas to show the current
 # coordinates and pixelsize
-updateCaption = -> $('#mandelplot_region').text(Plotter.desc())
+updateCaption = ->
+  $('#mandelplot_region').text(Plotter.desc())
+
+  baseUrl = $(location).attr('href').replace(/\#.*/, "")
+  console.debug(baseUrl)
+  $('#mandelplot_link').attr('href', Plotter.link(baseUrl))
+
 
 # Overwrite the user's input with the actual values in Plotter
 writeToUI = ->
   Ctrl.val('iter', Plotter.iter)
   Ctrl.val('slice', Plotter.slice)
+
 
 # Set Plotter's parameters from the user's input IF the input is
 # valid.
@@ -111,11 +121,13 @@ startRendering = ->
   #startTime = new Date()
   Plotter.startRender() #-> console.debug("Elapsed: #{new Date() - startTime}"))
 
+
 # Zoom out and start rendering.
 zoomOutAndRender = ->
   Zoomer.clearSelection()
   Plotter.zoom(1.5)
   startRendering()
+
 
 # Reset the Plot position to the default and re-render
 resetPosAndRender = () ->
