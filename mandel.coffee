@@ -26,6 +26,7 @@ Ctrl = null     # This object constructs a bunch of controls
 $(document).ready ->
   initGlobals()
   setupControls()
+  fetchUrlParams()
   startRendering()
 
 
@@ -50,6 +51,30 @@ makeUI = ->
   Ctrl.button('zbtn', "Zoom out by 50% and re-render", "Zoom Out",
       zoomOutAndRender)
   Ctrl.button('rsbtn', "Reset zoom and re-render", "Reset", resetPosAndRender)
+
+fetchUrlParams = ->
+  # Return unless there are parameters attached to the URL
+  hash = $(location).attr('hash')
+  return unless hash != ""
+
+  # Extract the parameters
+  fields = hash.substring(1).split(',').map (s) -> parseFloat(s)
+  [x, y, ps, iter] = fields
+  iter = Math.round(iter)
+
+  # Ensure that the values are all sane
+  return unless fields.length == 4
+  for f in fields
+    return if f == NaN
+  return unless (ps > 0 && iter > 0)
+
+  Plotter.topLeft = [x, y]
+  Plotter.pixelSize = ps
+  Plotter.iter = iter
+
+  writeToUI()
+
+
 
 # Update the caption underneath the canvas to show the current
 # coordinates and pixelsize
