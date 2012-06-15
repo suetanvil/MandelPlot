@@ -52,6 +52,8 @@ makeUI = ->
       zoomOutAndRender)
   Ctrl.button('rsbtn', "Reset zoom and re-render", "Reset", resetPosAndRender)
 
+# If the URL contains coordinates after the hash ('#'), parse them and
+# set them as the starting point.
 fetchUrlParams = ->
   # Return unless there are parameters attached to the URL
   hash = $(location).attr('hash')
@@ -68,12 +70,13 @@ fetchUrlParams = ->
     return if f == NaN
   return unless (ps > 0 && iter > 0)
 
+  # Set the values
   Plotter.topLeft = [x, y]
   Plotter.pixelSize = ps
   Plotter.iter = iter
 
+  # And update the UI
   writeToUI()
-
 
 
 # Update the caption underneath the canvas to show the current

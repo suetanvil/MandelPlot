@@ -95,13 +95,13 @@ class PlotState
       rgb = [r,g,b].map (c) -> Math.round(0x100+c*0xFF).toString(16).slice(1,2)
       '#' + rgb.join("")
 
-    range = count / maxCount
+    range = count/maxCount
     if range <= 0.25
-      return rgb(0, range / 0.25, 1)
+      return rgb(0, range/0.25, 1)
     else if range <= 0.5
-      return rgb(0, 1, 1 - (range - 0.25) / 0.25)
+      return rgb(0, 1, 1 - (range - 0.25)/0.25)
     else if range <= 0.75
-      return rgb((range - 0.5) / 0.25, 1, 0)
+      return rgb((range - 0.5)/0.25, 1, 0)
     else
       return rgb(1, 1 - (range - 0.75)/0.25, 0)
 
@@ -110,6 +110,10 @@ class PlotState
     stats = [@topLeft[0], @topLeft[1]]
     stats = stats.map (x) -> Math.round(x * 1000000000) / 1000000000
     "(#{stats[0]}, #{stats[1]}), pixel size = #{@pixelSize}"
+
+  # Return the URL of the current rendering parameters.  baseUrl must
+  # be the URL of this page.
+  link: (baseUrl) -> "#{baseUrl}##{@topLeft[x]},#{@topLeft[y]},#{@pixelSize},#{@iter}"
 
   # Zoom in or out (i.e. set the parameters to a new position zoomed
   # from the current position).  Zooms out if scale is > 1.0 and in if
