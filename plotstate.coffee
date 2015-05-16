@@ -42,25 +42,46 @@ class PlotState
     # actual rendering is done in the background via class
     # ResumeableAction.  If 'doneFn' is given, it is called if and
     # when the render process completes.
-    @startRender = (doneFn = null) ->
+    @startRender = ->
       renderState? && renderState.cancelTimerLoop()
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       ps = @pixelSize
-      ii = @iter
       [tx, ty] = @topLeft
 
+      countHist = (0 for n in [0 .. @iter])
+      points = ( (0 for y in [0..canvas.height]) for x in [0..canvas.width] )
+
+      # Compute the counts per pixel and also plot an initial colour value
       plotFn = (point) =>
         [x, y] = point
 
         fx = tx + x*ps
         fy = ty + y*ps
 
-        ctx.fillStyle = @pixelColor(fx, fy, @iter)
+        count = @pixelColor(fx, fy, @iter)
+
+        countHist[count]++
+        points[x][y] = count
+
+        ctx.fillStyle = @colorFor(count, @iter)
         ctx.fillRect(x, y, 1, 1)
 
+      # Redraw the image from `points`, this time using histogram
+      # colouring (see
+      # <http://en.wikipedia.org/wiki/Mandelbrot_set#Histogram_coloring>
+      # for details.)
+      reColorFn = () =>
+        palette = @makePalette(countHist, @iter)
+        for x in [0..canvas.width]
+          for y in [0..canvas.height]
+            ctx.fillStyle = palette[ points[x][y] ]
+            ctx.fillRect(x, y, 1, 1)
+
+      # Create a ResumableAction to call plotFn on each point to
+      # display.  Calls reColorFn when done.
       rr = range(0, canvas.width-1).permutedWith(range(0,canvas.height-1))
-      renderState = rr.forEach plotFn, doneFn
+      renderState = rr.forEach plotFn, reColorFn
       renderState.timerLoop(@slice)
 
     # Test if plotting is in progress
@@ -71,12 +92,12 @@ class PlotState
 
   # Compute the color for the pixel at point (ptX, ptY) on the
   # complex plane.
-  pixelColor: (ptX, ptY, iter) ->
+  pixelColor: (ptX, ptY, maxIter) ->
     [x, y, xx, yy] = [0, 0, 0, 0]
 
-    for count in [0 .. iter]
+    for count in [0 .. maxIter-1]
       if xx + yy >= 4
-        return @colorFor(count, iter)
+        return count
 
       xNew = xx - yy + ptX
       y = 2*x*y + ptY
@@ -85,25 +106,41 @@ class PlotState
       xx = x*x
       yy = y*y
 
-    return '#000000'
+    return maxIter
 
   # Give back a linear colour.  Colours are mapped from "cold" to
   # "hot" as described at
   # http://paulbourke.net/texture_colour/colourramp/
-  colorFor: (count, maxCount) ->
+  colorFor: (count, escape) ->
+    # count reaching maxcount means escape, so that's black
+    return "#000000" if count >= escape
+
     rgb = (r,g,b) ->
       rgb = [r,g,b].map (c) -> Math.round(0x100+c*0xFF).toString(16).slice(1,2)
       '#' + rgb.join("")
 
-    range = count/maxCount
+    range = count / escape
     if range <= 0.25
-      return rgb(0, range/0.25, 1)
+      return rgb(0, range / 0.25, 1)
     else if range <= 0.5
-      return rgb(0, 1, 1 - (range - 0.25)/0.25)
+      return rgb(0, 1, 1 - (range - 0.25) / 0.25)
     else if range <= 0.75
-      return rgb((range - 0.5)/0.25, 1, 0)
+      return rgb((range - 0.5) / 0.25, 1, 0)
     else
-      return rgb(1, 1 - (range - 0.75)/0.25, 0)
+      return rgb(1, 1 - (range - 0.75) / 0.25, 0)
+
+  # Given a histogram of escape counts and the maximum escape, compute
+  # a palette of colours matching the count value to a colour
+  # (represented as an RGB string).
+  makePalette: (hist, escape) =>
+    sum = hist[0..escape-1].reduce (t,s) => t+s
+
+    hue = 0
+    palette = hist.map (h) =>
+      hue += h
+      @colorFor(escape*(hue/sum), escape)
+
+    return palette
 
   # Return a textual description of the plot parameters
   desc: ->
@@ -140,4 +177,3 @@ class PlotState
     [cw, ch] = @canvasExtent()
     @pixelSize *= width
     @pixelSize /= cw
-
