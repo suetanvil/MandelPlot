@@ -30,6 +30,14 @@ class Quickform
     # Return the element
     @element = -> element
 
+    # Private hash mapping IDs to setters/getters
+    getters = {}
+    setters = {}
+
+    addAccessors = (id, set, get) ->
+      getters[pfx(id)] = set
+      setters[pfx(id)] = get
+
     addItem = (percent, value) ->
       section = $('<section/>')
       section.css('float', 'left')
@@ -49,6 +57,9 @@ class Quickform
     @numEntry = (id, text) ->
       e = $("<input maxlength=5 size=5 type=\"number\" id=#{pfx(id)}>")
       addRow(text, e)
+      addAccessors(id,
+        (pfid) -> $('#'+pfid).val(),
+        (pfid, val) -> $('#'+pfid).val(val))
 
     # Append a button with label 'label' and adjacent text 'text'.
     # 'action' is the function called when the button is pressed.
@@ -57,11 +68,18 @@ class Quickform
       addRow(text, e)
       $("##{pfx(id)}", container).click(action)
 
+    @checkbox = (id, text) ->
+      e = $("<input type=\"checkbox\" id=\"#{pfx(id)}\">#{text}</input>")
+      addRow("&nbsp;", e)
+      addAccessors(id,
+        (pfid) -> $('#'+pfid).prop('checked'),
+        (pfid, val) -> $('#'+pfid).prop('checked', !!val) )
+
     # Append an empty row
     @gridSpacer = ->
       addRow("&nbsp;", "&nbsp;")
 
     # Get or set the value of the control with id given by 'id'.
     @val = (id, value = null) ->
-      if value? then $('#'+pfx(id)).val(value) else $('#'+pfx(id)).val()
-
+      sg = if value? then setters else getters
+      sg[pfx(id)](pfx(id), value)

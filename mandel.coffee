@@ -48,7 +48,11 @@ setupControls =  ->
 # Actually create the form UI
 makeUI = ->
   Ctrl.numEntry('iter', "Iterations per pixel")
-  Ctrl.numEntry('slice', "Pixels per Event:");
+  Ctrl.numEntry('slice', "Pixels per Event:")
+  Ctrl.gridSpacer()
+  Ctrl.checkbox('cool', "Reverse colors")
+  Ctrl.checkbox('nohist', "Disable histogram coloring")
+  Ctrl.gridSpacer()
   Ctrl.button('rbtn', "Render the selected region", "Render", startRendering)
   Ctrl.button('zbtn', "Zoom out by 50% and re-render", "Zoom Out",
       zoomOutAndRender)
@@ -60,23 +64,11 @@ makeUI = ->
 fetchUrlParams = ->
   # Return unless there are parameters attached to the URL
   hash = $(location).attr('hash')
+  console.log(hash)
   return unless hash != ""
 
-  # Extract the parameters
-  fields = hash.substring(1).split(',').map (s) -> parseFloat(s)
-  [x, y, ps, iter] = fields
-  iter = Math.round(iter)
-
-  # Ensure that the values are all sane
-  return unless fields.length == 4
-  for f in fields
-    return if f == NaN
-  return unless (ps > 0 && iter > 0)
-
-  # Set the values
-  Plotter.topLeft = [x, y]
-  Plotter.pixelSize = ps
-  Plotter.iter = iter
+  # Update Plotter from the URL params
+  Plotter.setFromLink(hash)
 
   # And update the UI
   writeToUI()
@@ -88,23 +80,30 @@ updateCaption = ->
   $('#mandelplot_region').text(Plotter.desc())
 
   baseUrl = $(location).attr('href').replace(/\#.*/, "")
-  console.debug(baseUrl)
-  $('#mandelplot_link').attr('href', Plotter.link(baseUrl))
+  #console.debug(baseUrl)
+  $('#mandelplot_link').attr('href', "#{baseUrl}##{Plotter.link()}")
 
 
 # Overwrite the user's input with the actual values in Plotter
 writeToUI = ->
   Ctrl.val('iter', Plotter.iter)
   Ctrl.val('slice', Plotter.slice)
+  Ctrl.val('cool', Plotter.reverseColor)
+  Ctrl.val('nohist', !Plotter.histColor)
 
 
 # Set Plotter's parameters from the user's input IF the input is
 # valid.
 readFromUI = ->
   iter = parseInt(Ctrl.val('iter'))
-  slice = parseInt(Ctrl.val('slice'))
   Plotter.iter = iter   if iter >= 1
+
+  slice = parseInt(Ctrl.val('slice'))
   Plotter.slice = slice if slice >= 1
+
+  Plotter.reverseColor = Ctrl.val('cool')
+  Plotter.histColor = !Ctrl.val('nohist')
+
 
 
 # Start rendering the Mandelbrot set.  If the user has selected a

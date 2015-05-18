@@ -64,22 +64,30 @@ you see.
 You can zoom in on a rectangular region by selecting it with the mouse
 and then pressing "Render".
 <p>
-"Iterations per pixel" controls the level of detail.  Higher values
+<b>Iterations per pixel</b> controls the level of detail.  Higher values
 provide more precise results but take longer.  They may also hide some
 level of detail further from the edge of the actual set (i.e. the
 black regions) due to the way colours are chosen.
 <p>
-"Pixels per event" determines how many pixels are computed at one time
+<b>Pixels per event</b> determines how many pixels are computed at one time
 before control is returned to the browser.  Higher values make the
 browser less responsive (and may bring up the "stuck script" warning)
 but will (in theory) speed up actual rendering.  Actual experiments
 show it to not be worth the bother.
+<p>
+<b>Reverse colors</b> reverses how colors are mapped to the single
+computed value.  Using this may or may not look cooler.
+<p>
+<b>Disable histogram coloring</b> keeps the colors you see while the
+image is being rendered.  This is highly dependent on iterations per
+pixel and loses you a lot of detail in certain parts of the set.  On
+the other hand, it sometimes looks cool.
 </p>
 
 <hr>
 
 <p style="font-size: 8pt">
-  Copyright &#160;&#169;&#160; 2012 Chris Reuter.  This program is
+  Copyright &#160;&#169;&#160; 2012, 2015 Chris Reuter.  This program is
   available under the terms of
   the <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU GPL version
     2</a> and is distributed with NO WARRANTY.
