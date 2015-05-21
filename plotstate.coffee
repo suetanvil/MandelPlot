@@ -25,6 +25,9 @@ class PlotState
   # If true, use histogram coloring
   histColor: true
 
+  # If true, enable smoothing
+  smoothing: true
+
   # Constructor.  Defines the following methods:
   #
   # reset()
@@ -56,7 +59,8 @@ class PlotState
       [tx, ty] = @topLeft
 
       countHist = (0 for n in [0 .. @iter])
-      points = ( (0 for y in [0..canvas.height]) for x in [0..canvas.width] )
+      points = ( (0 for y in [0..canvas.height-1]) for x in [0..canvas.width-1] )
+      BAILOUT = 1<<16   # Should be a power of 2 (?)
 
       # Compute the counts per pixel and also plot an initial color value
       plotFn = (point) =>
@@ -65,12 +69,12 @@ class PlotState
         fx = tx + x*ps
         fy = ty + y*ps
 
-        count = @pixelColor(fx, fy, @iter)
+        [xx, yy, count] = @pixelColor(fx, fy, @iter, BAILOUT)
 
         countHist[count]++
-        points[x][y] = count
+        points[x][y] = [xx, yy, count]
 
-        ctx.fillStyle = @colorFor(count, @iter)
+        ctx.fillStyle = @colorFor(count/@iter)
         ctx.fillRect(x, y, 1, 1)
 
       # Redraw the image from `points`, this time using histogram
@@ -80,9 +84,31 @@ class PlotState
       reColorFn = () =>
         if !@histColor then return
         palette = @makePalette(countHist, @iter)
-        for x in [0..canvas.width]
-          for y in [0..canvas.height]
-            ctx.fillStyle = palette[ points[x][y] ]
+
+        log2 = Math.log(2)
+        lerp = (a, b, frac) -> a + ((b - a) * frac)
+
+        for x in [0..canvas.width-1]
+          for y in [0..canvas.height-1]
+            [xx, yy, count] = points[x][y]
+
+            if count >= @iter
+              colorStr = @colorFor(1)
+            else if !@smoothing
+              colorStr = @colorFor( palette[count] )
+            else
+              # Was:
+              #     zn = Math.sqrt(xx + yy)
+              #     nu = Math.log(Math.log(zn) / log2) / log2
+              # but we use / 2 to implement sqrt.
+              nu = Math.log( (Math.log(xx + yy) / 2) / log2) / log2
+              count += 1 - nu
+
+              clr1 = palette[ Math.floor(count) ]
+              clr2 = palette[ Math.floor(count) + 1]
+              colorStr = @colorFor(lerp(clr1, clr2, count % 1))
+
+            ctx.fillStyle = colorStr
             ctx.fillRect(x, y, 1, 1)
 
       # Create a ResumableAction to call plotFn on each point to
@@ -99,12 +125,12 @@ class PlotState
 
   # Compute the color for the pixel at point (ptX, ptY) on the
   # complex plane.
-  pixelColor: (ptX, ptY, maxIter) ->
+  pixelColor: (ptX, ptY, maxIter, bailout) ->
     [x, y, xx, yy] = [0, 0, 0, 0]
 
     for count in [0 .. maxIter-1]
-      if xx + yy >= 4
-        return count
+      if xx + yy >= bailout
+        return [xx, yy, count]
 
       xNew = xx - yy + ptX
       y = 2*x*y + ptY
@@ -113,20 +139,20 @@ class PlotState
       xx = x*x
       yy = y*y
 
-    return maxIter
+    return [0, 0, maxIter]
 
-  # Give back a linear color.  Colors are mapped from "cold" to
-  # "hot" as described at
-  # http://paulbourke.net/texture_colour/colourramp/
-  colorFor: (count, escape) =>
-    # count reaching maxcount means escape, so that's black
-    return "#000000" if count >= escape
+  # Give back a linear color.  Colors are mapped from "cold" to "hot"
+  # for a value between 0 and 1, or zero (part of the Mandelbrot Set)
+  # if range >= 1.
+  #
+  # Source: http://paulbourke.net/texture_colour/colourramp/ (dead link)
+  colorFor: (range) =>
+    return "#000000" if range >= 1
 
     rgb = (r,g,b) ->
-      rgb = [r,g,b].map (c) -> Math.round(0x100+c*0xFF).toString(16).slice(1,2)
-      '#' + rgb.join("")
+      clr = [r,g,b].map (c) -> Math.round(0x100+c*0xFF).toString(16)
+      '#' + clr.map( (c) -> ("0" + c).substr(-2) ).join("")
 
-    range = count / escape
     range = 1 - range if @reverseColor
     if range <= 0.25
       return rgb(0, range / 0.25, 1)
@@ -146,7 +172,7 @@ class PlotState
     hue = 0
     palette = hist.map (h) =>
       hue += h
-      @colorFor(escape*(hue/sum), escape)
+      hue/sum
 
     return palette
 
@@ -160,11 +186,11 @@ class PlotState
   # be the URL of this page.
   link: ->
     "#{@topLeft[0]},#{@topLeft[1]},#{@pixelSize},#{@iter}," +
-      "#{@reverseColor+0},#{@histColor+0}"
+      "#{@reverseColor+0},#{@histColor+0},#{@smoothing+0}"
 
   setFromLink: (afterHash) ->
     fields = afterHash.substring(1).split(',').map (s) -> parseFloat(s)
-    [x, y, ps, iter, reverse, useHist] = fields
+    [x, y, ps, iter, reverse, useHist, smoothing] = fields
     iter = Math.round(iter)
 
     # Ensure that the values are all sane
@@ -179,9 +205,7 @@ class PlotState
     @iter = iter
     @reverseColor = reverse? && !!reverse
     @histColor = useHist? && !!useHist
-
-    console.log(this)
-
+    @smoothing = smoothing? && !!smoothing
 
   # Zoom in or out (i.e. set the parameters to a new position zoomed
   # from the current position).  Zooms out if scale is > 1.0 and in if

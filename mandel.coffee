@@ -47,11 +47,12 @@ setupControls =  ->
 
 # Actually create the form UI
 makeUI = ->
-  Ctrl.numEntry('iter', "Iterations per pixel")
-  Ctrl.numEntry('slice', "Pixels per Event:")
+  Ctrl.numEntry('iter',     "Iterations per pixel")
+  Ctrl.numEntry('slice',    "Pixels per Event:")
   Ctrl.gridSpacer()
-  Ctrl.checkbox('cool', "Reverse colors")
-  Ctrl.checkbox('nohist', "Disable histogram coloring")
+  Ctrl.checkbox('cool', "   Reverse colors")
+  Ctrl.checkbox('nohist',   "Disable histogram coloring")
+  Ctrl.checkbox('nosmooth', "Disable smoothing")
   Ctrl.gridSpacer()
   Ctrl.button('rbtn', "Render the selected region", "Render", startRendering)
   Ctrl.button('zbtn', "Zoom out by 50% and re-render", "Zoom Out",
@@ -64,7 +65,6 @@ makeUI = ->
 fetchUrlParams = ->
   # Return unless there are parameters attached to the URL
   hash = $(location).attr('hash')
-  console.log(hash)
   return unless hash != ""
 
   # Update Plotter from the URL params
@@ -90,6 +90,7 @@ writeToUI = ->
   Ctrl.val('slice', Plotter.slice)
   Ctrl.val('cool', Plotter.reverseColor)
   Ctrl.val('nohist', !Plotter.histColor)
+  Ctrl.val('nosmooth', !Plotter.smoothing)
 
 
 # Set Plotter's parameters from the user's input IF the input is
@@ -103,6 +104,7 @@ readFromUI = ->
 
   Plotter.reverseColor = Ctrl.val('cool')
   Plotter.histColor = !Ctrl.val('nohist')
+  Plotter.smoothing = !Ctrl.val('nosmooth')
 
 
 

@@ -15,7 +15,8 @@
     }
   </style>
 
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> -->
+  <script src="extras/jquery-1.9.1.js"></script>
   <script src="seq.js"></script>
   <script src="plotstate.js"></script>
   <script src="zoomer.js"></script>
@@ -81,9 +82,12 @@ computed value.  Using this may or may not look cooler.
 <b>Disable histogram coloring</b> keeps the colors you see while the
 image is being rendered.  This is highly dependent on iterations per
 pixel and loses you a lot of detail in certain parts of the set.  On
-the other hand, it sometimes looks cool.
+the other hand, it sometimes looks cool.  Checking this also disables
+smoothing.
+<p>
+<b>Disable smoothing</b> disables smoothing, which eliminates banding
+artifacts.
 </p>
-
 <hr>
 
 <p style="font-size: 8pt">
